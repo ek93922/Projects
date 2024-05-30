@@ -2,11 +2,14 @@ import tkinter as tk
 from tkinter import *
 from tkinter import ttk
 from PIL import ImageTk, Image
-from datetime import datetime
+from datetime import datetime, date
+import calendar
 import os
 import sys
 import sqlite3
 import re
+import copyPaste
+from tkcalendar import Calendar, DateEntry
 
 
 
@@ -23,7 +26,7 @@ h = 500
 # ------------------------------------------------------------------------------------------------------#
 
 # ------------------------------------------------------------------------------------------------------#
-# Create Login Window
+# Create root Window
 top = Toplevel()
 top.title('New-Hire')
 # Opens a window with dimension of 300x450 at screen coordinate of 300, 200
@@ -36,126 +39,117 @@ top.attributes("-topmost", True)
 submit_btn = Button(top, text="Submit", command=lambda:overwrite())
 quit_btn = Button(top, text="Quit", command=lambda:quit())
 
+# ------------------------------------------------------------------------------------------------------#
+
 def overwrite():
-    first_last = getInput()
+    name = getInput()
+    first_last = getFirstLast(name)
     setText(first_last)
 
+
 def getInput():
-    # Gets entered name and keeps alphanumeric and space 
-    full_name = re.sub(r'[^A-Za-z0-9 ]+', '', new_hire_name.get().lower())
+
+    #   Splits the entered name into a list
+    full_name = new_hire_name.get().lower().split()
+    
+    #   Checks if each entry in the list is only alphetical.
+    #   Recusrion if any of the list entry is not a valid input, and clear fields.
+    for str in full_name:
+        if str.isalpha() == True:
+            continue 
+        else:
+            clearText()
+            getInput()
+
+    return full_name
+
+
+#   Retrieves only the first and last name from the 
+def getFirstLast(full_name):
+    
+    list_size = len(full_name)
 
     # Creates array of first name and last name
-    first_name = full_name.strip().split()[0]
-    last_name = full_name.strip().split()[1]
+    first_name = full_name[0]
+    last_name = full_name[list_size - 1]
     
     global params
     params = [first_name, last_name]
     return params
 
+#   
 def setText(text):
-    varOne = firstLast(text)
-    varTwo = firstIniLastIni(text)
-    varThree = firstIniLast(text)
-
-    gmail.delete(0, END)
-    gmail.insert(0, varOne)
-
-    quickbase.delete(0, END)
-    quickbase.insert(0, varTwo)
-
-    mri.delete(0, END)
-    mri.insert(0, varThree)
-
-
-
-def firstLast(params):
     # Name: John Apple
     # result: john.apple@douglasemmett.com
-    # Used for:
-    # Gmail / Quickbase / Zego
-    variant_one = params[0] + "." + params[1] + "@douglasemmett.com"
-    return variant_one
+    varOne = copyPaste.firstLast(text)
 
-def firstIniLastIni(params):
-    # Name: John Apple
-    # result: ja@douglasemmett.com
-    variant_two = params[0][:1] + params[1][:1] + "@douglasemmett.com"
-    return variant_two
-
-def firstIniLast(params):
-    # Name: John Apple
-    # result: japple@douglasemmett.com
-    variant_three = params[0][:1] + params[1] + "@douglasemmett.com"
-    return variant_three
-
-def firstLastNoEmail(params):
     # Name: John Apple
     # result: john.apple
-    variant_four = params[0] + "." + params[1]
-    return variant_four
+    varTwo = copyPaste.firstLastNoEmail(text)
+    
+    #   Takes in the selected date from tkcalendar app
+    #   returns string of 'mmdd'
+    #   ex: May 2nd turns into 0502
+    varThree = copyPaste.temp_password(cal)
 
-def firstIniLastNoEmail(params):
-    # Name: John Apple
-    # result: japple
-    # Used for: 
-    # Nexus / hh2 / 
-    variant_five = params[0][:1] + params[1]
-    return variant_five
+    email.delete(0, END)
+    email.insert(0, varOne)
+
+    simplefied.delete(0, END)
+    simplefied.insert(0, varTwo)
+
+    temp_pass.delete(0, END)
+    temp_pass.insert(0, varThree)
+
+
+#   Clears Entry fields.
+def clearText():
+    email.delete(0, END)
+
+    simplefied.delete(0, END)
+
+    temp_pass.delete(0, END)
 
 
 # ------------------------------------------------------------------------------------------------------#
-
+#   Defines fields for elements to be used for the GUI.
 
 new_hire_label = Label(top, text="Name")
 new_hire_name = Entry(top) 
 
-gmail_label = Label(top, text="Gmail")
-gmail = Entry(top)
+cal_label = Label(top, text="Start Date")
+cal = DateEntry(top, width=12, background='darkblue',
+                    foreground='white', borderwidth=2)
 
-quickbase_label = Label(top, text="QuickBase")
-quickbase = Entry(top)
+email_label = Label(top, text="Email")
+email = Entry(top)
 
-mri_label = Label(top, text="MRI")
-mri = Entry(top)
+simplefied_label = Label(top, text="Simple")
+simplefied = Entry(top)
 
-nexus_label = Label(top, text="Nexus")
-nexus = Entry(top)
+temp_pass_label = Label(top, text="Temp PW")
+temp_pass = Entry(top)
 
-sage_label = Label(top, text="Sage")
-sage = Entry(top)
-
-clickpay_label = Label(top, text="Click Pay")
-clickpay = Entry(top)
-
-procore_label = Label(top, text="ProCore")
-procore = Entry(top)
 
 # ------------------------------------------------------------------------------------------------------#
-
+#   Puts defined fields into a grid.
 
 new_hire_label.grid(row=1, column=0, sticky='w')
-new_hire_name.grid(row=1, column=1,padx= 10, pady=15, columnspan=10)
+new_hire_name.grid(row=1, column=1,padx= 10, pady=5, columnspan=10)
 
-gmail_label.grid(row=2, column=0, sticky='w')
-gmail.grid(row=2, column=1,padx= 10, pady=5, columnspan=10)
 
-quickbase_label.grid(row=3, column=0, sticky='w')
-quickbase.grid(row=3, column=1,padx= 10, pady=5, columnspan=10)
+cal_label.grid(row=2, column=0, sticky='w')
+cal.grid(row=2, column=1, pady=2, columnspan=5)
 
-mri_label.grid(row=4, column=0, sticky='w')
-mri.grid(row=4, column=1,padx= 10, pady=5, columnspan=10)
+simplefied_label.grid(row=3, column=0, sticky='w')
+simplefied.grid(row=3, column=1,padx= 10, pady=5, columnspan=10)
 
-nexus_label.grid(row=5, column=0, sticky='w')
-nexus.grid(row=5, column=1,padx= 10, pady=5, columnspan=10)
+email_label.grid(row=4, column=0, sticky='w')
+email.grid(row=4, column=1,padx= 10, pady=5, columnspan=10)
 
-sage_label.grid(row=6, column=0, sticky='w')
-sage.grid(row=6, column=1,padx= 10, pady=5, columnspan=10)
+temp_pass_label.grid(row=5, column=0, sticky='w')
+temp_pass.grid(row=5, column=1,padx= 10, pady=5, columnspan=10)
 
-clickpay_label.grid(row=7, column=0, sticky='w')
-clickpay.grid(row=7, column=1,padx= 10, pady=5, columnspan=10)
-
-procore_label.grid(row=8, column=0, sticky='w')
-procore.grid(row=8, column=1,padx= 10, pady=5, columnspan=10)
 
 submit_btn.grid(row=12, column=1)
 quit_btn.grid(row=12, column=2)
